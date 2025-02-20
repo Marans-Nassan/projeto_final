@@ -118,17 +118,17 @@ void pwm_setup(uint32_t duty_cycle){
 }
 
 void alarm_buzzers(){
-pwm_set_gpio_level(buzzer_a, 50);
-add_alarm_in_ms(200, turn_off_pwm, NULL, false);
-add_alarm_in_ms(15000, turn_on_pwm, NULL, false);
-add_alarm_in_ms(16000, turn_off_pwm, NULL, false);
-add_alarm_in_ms(17000, turn_on_pwm, NULL, false);
-add_alarm_in_ms(18000, turn_off_pwm, NULL, false);
-add_alarm_in_us(20000040, turn_on_pwm, NULL, false);
-add_alarm_in_ms(20600, turn_off_pwm, NULL, false);
-add_alarm_in_ms(50000, turn_on_pwm, NULL, false);
-add_alarm_in_ms(52000, turn_off_pwm, NULL, false);
-add_alarm_in_ms(54000, turn_on_pwm, NULL, false);
-add_alarm_in_ms(56000, turn_off_pwm, NULL, false);
+    pwm_set_gpio_level(buzzer_a, 50);
+    add_alarm_in_ms(200, turn_off_pwm, NULL, false);
+    add_alarm_in_ms(15000, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(16000, turn_off_pwm, NULL, false);
+    add_alarm_in_ms(17000, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(18000, turn_off_pwm, NULL, false);
+    add_alarm_in_us(20000040, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(20600, turn_off_pwm, NULL, false);
+    add_alarm_in_ms(50000, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(52000, turn_off_pwm, NULL, false);
+    add_alarm_in_ms(54000, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(56000, turn_off_pwm, NULL, false);
 
 }
