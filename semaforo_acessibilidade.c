@@ -15,14 +15,18 @@
 #define periodo 999
 #define SDA 14
 #define SCL 15
-#define endereco 0xc3
+#define endereco 0x3c
 #define I2C_PORT i2c1
 
 static bool true_false = 1;
+static bool contagem_regressiva;
 uint8_t pinos[3] = {11, 13, 21};
 static uint8_t verde = led_verde;
 static uint8_t vermelho = led_vermelho;
 static uint8_t slice;
+static uint8_t tempo_amarelo = 0;
+static uint8_t tempo_vermelho = 0;
+ssd1306_t ssd;
 
 void led_e_buz_init();
 void botinit();
@@ -33,18 +37,27 @@ int64_t turn_on_pwm(alarm_id_t id, void *user_data);
 void alternando_interrupcao();
 void alarm_buzzers();
 void pwm_setup(uint32_t duty_cycle);
+void i2cinit();
+void oledinit();
+void oledisplay(uint8_t segundos);
+void contagem();
+void borda();
 
 int main(){
 
     led_e_buz_init();
     botinit();
     pwm_setup(0);
+    i2cinit();
+    oledinit();
     gpio_set_irq_enabled_with_callback(botao_a, GPIO_IRQ_EDGE_FALL, true, gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(botao_b, GPIO_IRQ_EDGE_FALL, true, gpio_irq_handler);
     stdio_init_all();
 
     while (true) {
-
+        contagem();
+        ssd1306_fill(&ssd, false); 
+        ssd1306_send_data(&ssd);
     }
 }
 
@@ -67,14 +80,19 @@ void botinit(){
 void gpio_irq_handler(uint gpio, uint32_t events){
     if(gpio == botao_a || gpio == botao_b) {
         if(gpio == botao_a){
+            tempo_amarelo = 15;
+            tempo_vermelho = 15;
             gpio_put(led_verde, 1);
             gpio_put(led_vermelho, 1);
+            contagem_regressiva = 1;
             alternando_interrupcao();           
             add_alarm_in_ms(15000, turn_off_leds, &verde, false);
             add_alarm_in_ms(30000, turn_off_leds, &vermelho, false);
         }
         if(gpio == botao_b){
             pwm_set_wrap(slice, 999);
+            tempo_amarelo = 20;
+            tempo_vermelho = 40;
             gpio_put(led_verde, 1);
             gpio_put(led_vermelho, 1);
             alternando_interrupcao();
@@ -144,4 +162,42 @@ void i2cinit(){
             gpio_set_function(i, GPIO_FUNC_I2C);
             gpio_pull_up(i);
         }  
+}
+
+void oledinit(){
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT);
+    ssd1306_config(&ssd);
+}
+
+void oledisplay(uint8_t segundos){
+char tempo[3];
+tempo[0] = '0' + (segundos / 10);
+tempo[1] = '0' + (segundos % 10);
+tempo[2] = '\0';
+ssd1306_rect(&ssd, 1, 1, WIDTH - 2, HEIGHT - 2, true, false);
+ssd1306_draw_string(&ssd, tempo, 58, 25 );
+ssd1306_send_data(&ssd);
+}
+
+void contagem(){
+    if(contagem_regressiva){
+        if(gpio_get(verde) == 1){ 
+            for (uint8_t i = tempo_amarelo ; i > 0; i--){
+                oledisplay(i);
+                sleep_ms(1000);
+            }    
+        }  
+
+        if(gpio_get(vermelho) == 1 && gpio_get(verde) == 0){ 
+            for (uint8_t i = tempo_vermelho ; i > 0; i--){
+                oledisplay(i);
+                sleep_ms(1000);
+            }    
+        }
+    } 
+    contagem_regressiva = 0;       
+}
+
+void borda(){
+    ssd1306_rect(&ssd, 4, 4, 124, 60, true, false);
 }
