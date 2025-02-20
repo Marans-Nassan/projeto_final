@@ -5,7 +5,7 @@
 #include "hardware/i2c.h"
 #include "ssd1306.h"
 #include "font.h"
-
+// Macros.
 #define led_verde 11
 #define led_vermelho 13
 #define botao_a 5
@@ -17,7 +17,8 @@
 #define SCL 15
 #define endereco 0x3c
 #define I2C_PORT i2c1
-
+ssd1306_t ssd;
+// Variáveis.
 static volatile bool contagem_regressiva = 0;
 static volatile bool som_estado;
 uint8_t pinos[3] = {11, 13, 21};
@@ -26,19 +27,18 @@ static uint8_t vermelho = led_vermelho;
 static uint8_t slice;
 static uint8_t tempo_amarelo = 0;
 static uint8_t tempo_vermelho = 0;
-ssd1306_t ssd;
-
-void led_e_buz_init();
-void botinit();
-void gpio_irq_handler(uint gpio, uint32_t events);
-bool alternando_interrupcao(bool true_false);
-void pwm_setup(uint32_t duty_cycle);
-void i2cinit();
-void oledinit();
-void oledisplay(uint8_t segundos);
-void contagem();
-void limpar_tela();
-
+// Protótipos.
+void led_e_buz_init(); // Responsável por iniciar os leds e buzzer.
+void botinit(); // Responsável por iniciar os botões.
+void gpio_irq_handler(uint gpio, uint32_t events); // Administra as ações quando a interrupção é ativada.
+bool alternando_interrupcao(bool true_false); // Responsável por garantir que o botão só será acionado quando terminar a contagem.
+void pwm_setup(uint32_t duty_cycle); // Responsável por iniciar e configurar o PWM.
+void i2cinit(); // Responsável por iniciar o i2c.
+void oledinit(); // Responsável por iniciar o OLED ssd1306.
+void oledisplay(uint8_t segundos); // Responsável por apresentar a contagem no display.
+void contagem(); // Responsável por toda operação dentro do loop principal.
+void limpar_tela(); // Responsável por limpar a tela do display ao concluir toda a operação.
+// Função principal.
 int main(){
 
     led_e_buz_init();
@@ -71,10 +71,10 @@ void botinit(){
         gpio_pull_up(botoes);
     }
 }
-
+// Altera-se o tempo_amarelo e o vermelho para definir de quando vai começar a contagem do display para cada cor do sinal.
 void gpio_irq_handler(uint gpio, uint32_t events){
     if(gpio == botao_a || gpio == botao_b) {
-        if(gpio == botao_a){
+        if(gpio == botao_a){ // Este botão é o de uso comum. Sem som.
             tempo_amarelo = 5;
             tempo_vermelho = 10;
             gpio_put(led_verde, 1);
@@ -83,7 +83,7 @@ void gpio_irq_handler(uint gpio, uint32_t events){
             alternando_interrupcao(false);           
         }
         
-        if(gpio == botao_b){
+        if(gpio == botao_b){ // Este botão é o de acessibilidade. Com som.
             pwm_set_wrap(slice, 999);
             tempo_amarelo = 5;
             tempo_vermelho = 12;
@@ -133,10 +133,10 @@ void oledisplay(uint8_t segundos){
     ssd1306_draw_string(&ssd, tempo, 58, 25 );
     ssd1306_send_data(&ssd);
 }
-
+// Os valores de 0 ~ 100  no segundo argumento de pwm_set_gpio_level definem o volume do som. (0 = sem som. 100 = volume máximo)
 void contagem(){
 
-    if(contagem_regressiva && som_estado){ //Checa se foi o botão_b pressionado.
+    if(contagem_regressiva && som_estado){ // Verifica se o botao_b foi pressionado.
         if(gpio_get(verde) == 1){ 
             for (uint8_t i = tempo_amarelo ; i > 0; i--){
                 oledisplay(i);
@@ -163,7 +163,7 @@ void contagem(){
                 som_estado = 0; 
         }
     }
-        else if (contagem_regressiva){ // Verificação pro botao_a
+        else if (contagem_regressiva){ // Verifica se o botao_a foi pressionado.
             if(gpio_get(verde) == 1){ 
                 for (uint8_t i = tempo_amarelo ; i > 0; i--){
                     oledisplay(i);
