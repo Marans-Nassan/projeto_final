@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(semaforo_acessibilidade semaforo_acessibilidade.c )
+add_executable(semaforo_acessibilidade semaforo_acessibilidade.c ssd1306.c )
 
 pico_set_program_name(semaforo_acessibilidade "semaforo_acessibilidade")
 pico_set_program_version(semaforo_acessibilidade "0.1")
@@ -46,7 +46,7 @@ pico_enable_stdio_usb(semaforo_acessibilidade 0)
 
 # Add the standard library to the build
 target_link_libraries(semaforo_acessibilidade
-        pico_stdlib hardware_pwm)
+        pico_stdlib hardware_pwm hardware_i2c)
 
 # Add the standard include files to the build
 target_include_directories(semaforo_acessibilidade PRIVATE

@@ -2,6 +2,9 @@
 #include "pico/stdlib.h"
 #include "pico/time.h"
 #include "hardware/pwm.h"
+#include "hardware/i2c.h"
+#include "ssd1306.h"
+#include "font.h"
 
 #define led_verde 11
 #define led_vermelho 13
@@ -10,6 +13,10 @@
 #define buzzer_a 21
 #define divisor 125.0
 #define periodo 999
+#define SDA 14
+#define SCL 15
+#define endereco 0xc3
+#define I2C_PORT i2c1
 
 static bool true_false = 1;
 uint8_t pinos[3] = {11, 13, 21};
@@ -29,12 +36,12 @@ void pwm_setup(uint32_t duty_cycle);
 
 int main(){
 
-led_e_buz_init();
-botinit();
-pwm_setup(0);
-gpio_set_irq_enabled_with_callback(botao_a, GPIO_IRQ_EDGE_FALL, true, gpio_irq_handler);
-gpio_set_irq_enabled_with_callback(botao_b, GPIO_IRQ_EDGE_FALL, true, gpio_irq_handler);
-stdio_init_all();
+    led_e_buz_init();
+    botinit();
+    pwm_setup(0);
+    gpio_set_irq_enabled_with_callback(botao_a, GPIO_IRQ_EDGE_FALL, true, gpio_irq_handler);
+    gpio_set_irq_enabled_with_callback(botao_b, GPIO_IRQ_EDGE_FALL, true, gpio_irq_handler);
+    stdio_init_all();
 
     while (true) {
 
@@ -47,7 +54,6 @@ void led_e_buz_init(){
         gpio_set_dir(pinos[i], GPIO_OUT);
         gpio_put(pinos[i], 0);
     }
-
 }
 
 void botinit(){
@@ -80,23 +86,23 @@ void gpio_irq_handler(uint gpio, uint32_t events){
 }
 
 int64_t turn_off_leds(alarm_id_t id, void *user_data){
-uint8_t led = *(uint8_t*)user_data; 
-gpio_put(led, 0);
-if(gpio_get(vermelho) == 0)alternando_interrupcao();
+    uint8_t led = *(uint8_t*)user_data; 
+    gpio_put(led, 0);
+        if(gpio_get(vermelho) == 0)alternando_interrupcao();
 return 0;
 }
 
 int64_t turn_off_pwm(alarm_id_t id, void *user_data){
-pwm_set_gpio_level(buzzer_a, 0);
+    pwm_set_gpio_level(buzzer_a, 0);
 return 0;
 }
 
 int64_t turn_on_pwm(alarm_id_t id, void *user_data){
-if(gpio_get(verde) == 1)pwm_set_gpio_level(buzzer_a, 100);       
-    else{
-        pwm_set_wrap(slice, 2999);
-        pwm_set_gpio_level(buzzer_a, 100);
-    }
+    if(gpio_get(verde) == 1)pwm_set_gpio_level(buzzer_a, 100);       
+        else{
+            pwm_set_wrap(slice, 2999);
+            pwm_set_gpio_level(buzzer_a, 100);
+        }
 
 return 0;    
 }
@@ -118,17 +124,24 @@ void pwm_setup(uint32_t duty_cycle){
 }
 
 void alarm_buzzers(){
-pwm_set_gpio_level(buzzer_a, 50);
-add_alarm_in_ms(200, turn_off_pwm, NULL, false);
-add_alarm_in_ms(15000, turn_on_pwm, NULL, false);
-add_alarm_in_ms(16000, turn_off_pwm, NULL, false);
-add_alarm_in_ms(17000, turn_on_pwm, NULL, false);
-add_alarm_in_ms(18000, turn_off_pwm, NULL, false);
-add_alarm_in_us(20000040, turn_on_pwm, NULL, false);
-add_alarm_in_ms(20600, turn_off_pwm, NULL, false);
-add_alarm_in_ms(50000, turn_on_pwm, NULL, false);
-add_alarm_in_ms(52000, turn_off_pwm, NULL, false);
-add_alarm_in_ms(54000, turn_on_pwm, NULL, false);
-add_alarm_in_ms(56000, turn_off_pwm, NULL, false);
+    pwm_set_gpio_level(buzzer_a, 50);
+    add_alarm_in_ms(200, turn_off_pwm, NULL, false);
+    add_alarm_in_ms(15000, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(16000, turn_off_pwm, NULL, false);
+    add_alarm_in_ms(17000, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(18000, turn_off_pwm, NULL, false);
+    add_alarm_in_us(20000040, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(20600, turn_off_pwm, NULL, false);
+    add_alarm_in_ms(50000, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(52000, turn_off_pwm, NULL, false);
+    add_alarm_in_ms(54000, turn_on_pwm, NULL, false);
+    add_alarm_in_ms(56000, turn_off_pwm, NULL, false);
+}
 
+void i2cinit(){
+    i2c_init(I2C_PORT, 400*1000);
+        for(uint8_t i = 14; i < 16; i++){
+            gpio_set_function(i, GPIO_FUNC_I2C);
+            gpio_pull_up(i);
+        }  
 }
