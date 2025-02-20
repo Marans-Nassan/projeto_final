@@ -18,8 +18,7 @@
 #define endereco 0x3c
 #define I2C_PORT i2c1
 
-static bool true_false = 1;
-static volatile bool contagem_regressiva;
+static volatile bool contagem_regressiva = 0;
 static volatile bool som_estado;
 uint8_t pinos[3] = {11, 13, 21};
 static uint8_t verde = led_verde;
@@ -32,7 +31,7 @@ ssd1306_t ssd;
 void led_e_buz_init();
 void botinit();
 void gpio_irq_handler(uint gpio, uint32_t events);
-void alternando_interrupcao();
+bool alternando_interrupcao(bool true_false);
 void pwm_setup(uint32_t duty_cycle);
 void i2cinit();
 void oledinit();
@@ -76,31 +75,31 @@ void botinit(){
 void gpio_irq_handler(uint gpio, uint32_t events){
     if(gpio == botao_a || gpio == botao_b) {
         if(gpio == botao_a){
-            tempo_amarelo = 15;
-            tempo_vermelho = 15;
+            tempo_amarelo = 5;
+            tempo_vermelho = 10;
             gpio_put(led_verde, 1);
             gpio_put(led_vermelho, 1);
             contagem_regressiva = 1;
-            alternando_interrupcao();           
+            alternando_interrupcao(false);           
         }
         
         if(gpio == botao_b){
             pwm_set_wrap(slice, 999);
-            tempo_amarelo = 20;
-            tempo_vermelho = 40;
+            tempo_amarelo = 5;
+            tempo_vermelho = 12;
             gpio_put(led_verde, 1);
             gpio_put(led_vermelho, 1);
-            alternando_interrupcao();
+            contagem_regressiva = 1;
+            alternando_interrupcao(false);
             som_estado = 1;
         }
     }
 }
 
-void alternando_interrupcao(){
-    true_false = !true_false;
-    
+bool alternando_interrupcao(bool true_false){    
     gpio_set_irq_enabled_with_callback(botao_a, GPIO_IRQ_EDGE_FALL, true_false, gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(botao_b, GPIO_IRQ_EDGE_FALL, true_false, gpio_irq_handler);
+return 0;
 }
 
 void pwm_setup(uint32_t duty_cycle){
@@ -141,12 +140,10 @@ void contagem(){
         if(gpio_get(verde) == 1){ 
             for (uint8_t i = tempo_amarelo ; i > 0; i--){
                 oledisplay(i);
-                if(tempo_amarelo == 20)pwm_set_gpio_level(buzzer_a, 100);
-                if(tempo_amarelo == 19)pwm_set_gpio_level(buzzer_a, 0);
-                if(tempo_amarelo == 6)pwm_set_gpio_level(buzzer_a, 100);
-                if(tempo_amarelo == 5)pwm_set_gpio_level(buzzer_a, 0);
-                if(tempo_amarelo == 4)pwm_set_gpio_level(buzzer_a, 100);
-                if(tempo_amarelo == 3)pwm_set_gpio_level(buzzer_a, 0);
+                if(i == 5)pwm_set_gpio_level(buzzer_a, 100);
+                if(i == 4)pwm_set_gpio_level(buzzer_a, 0);
+                if(i == 2)pwm_set_gpio_level(buzzer_a, 100);
+                if(i == 1)pwm_set_gpio_level(buzzer_a, 0);
                 sleep_ms(1000);
             } 
                 gpio_put(verde, 0);   
@@ -156,16 +153,14 @@ void contagem(){
             pwm_set_wrap(slice, 2999);
             for (uint8_t i = tempo_vermelho ; i > 0; i--){
                 oledisplay(i);
-                if(tempo_vermelho == 40)pwm_set_gpio_level(buzzer_a, 100);
-                if(tempo_vermelho == 39)pwm_set_gpio_level(buzzer_a, 0);
-                if(tempo_vermelho == 10)pwm_set_gpio_level(buzzer_a, 100);
-                if(tempo_vermelho == 8)pwm_set_gpio_level(buzzer_a, 0);
-                if(tempo_vermelho == 6)pwm_set_gpio_level(buzzer_a, 100);
-                if(tempo_vermelho == 4)pwm_set_gpio_level(buzzer_a, 0);
+                if(i == 12)pwm_set_gpio_level(buzzer_a, 100);
+                if(i == 11)pwm_set_gpio_level(buzzer_a, 0);
+                if(i == 5)pwm_set_gpio_level(buzzer_a, 100);
+                if(i == 3)pwm_set_gpio_level(buzzer_a, 0);
                 sleep_ms(1000);
             }
                 gpio_put(vermelho, 0);
-                som_estado = 0;    
+                som_estado = 0; 
         }
     }
         else if (contagem_regressiva){ // Verificação pro botao_a
@@ -182,11 +177,11 @@ void contagem(){
                     oledisplay(i);
                     sleep_ms(1000);
                 }
-                gpio_put(vermelho, 0);    
+                gpio_put(vermelho, 0); 
             }
         }
-     
-    contagem_regressiva = 0;       
+    contagem_regressiva = 0;  
+    alternando_interrupcao(true);      
 }
 
 void limpar_tela(){
