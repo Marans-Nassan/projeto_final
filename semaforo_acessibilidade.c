@@ -20,6 +20,7 @@
 
 static bool true_false = 1;
 static bool contagem_regressiva;
+static bool som_estado;
 uint8_t pinos[3] = {11, 13, 21};
 static uint8_t verde = led_verde;
 static uint8_t vermelho = led_vermelho;
@@ -35,13 +36,12 @@ int64_t turn_off_leds(alarm_id_t id, void *user_data);
 int64_t turn_off_pwm(alarm_id_t id, void *user_data);
 int64_t turn_on_pwm(alarm_id_t id, void *user_data);
 void alternando_interrupcao();
-void alarm_buzzers();
 void pwm_setup(uint32_t duty_cycle);
 void i2cinit();
 void oledinit();
 void oledisplay(uint8_t segundos);
 void contagem();
-void borda();
+void limpar_tela();
 
 int main(){
 
@@ -56,8 +56,7 @@ int main(){
 
     while (true) {
         contagem();
-        ssd1306_fill(&ssd, false); 
-        ssd1306_send_data(&ssd);
+        limpar_tela();
     }
 }
 
@@ -86,9 +85,8 @@ void gpio_irq_handler(uint gpio, uint32_t events){
             gpio_put(led_vermelho, 1);
             contagem_regressiva = 1;
             alternando_interrupcao();           
-            add_alarm_in_ms(15000, turn_off_leds, &verde, false);
-            add_alarm_in_ms(30000, turn_off_leds, &vermelho, false);
         }
+        
         if(gpio == botao_b){
             pwm_set_wrap(slice, 999);
             tempo_amarelo = 20;
@@ -96,9 +94,7 @@ void gpio_irq_handler(uint gpio, uint32_t events){
             gpio_put(led_verde, 1);
             gpio_put(led_vermelho, 1);
             alternando_interrupcao();
-            alarm_buzzers();
-            add_alarm_in_ms(20000, turn_off_leds, &verde, false);
-            add_alarm_in_ms(60000, turn_off_leds, &vermelho, false);
+            som_estado = 1;
         }
     }
 }
@@ -141,21 +137,6 @@ void pwm_setup(uint32_t duty_cycle){
     pwm_set_enabled(slice, true);
 }
 
-void alarm_buzzers(){
-    pwm_set_gpio_level(buzzer_a, 50);
-    add_alarm_in_ms(200, turn_off_pwm, NULL, false);
-    add_alarm_in_ms(15000, turn_on_pwm, NULL, false);
-    add_alarm_in_ms(16000, turn_off_pwm, NULL, false);
-    add_alarm_in_ms(17000, turn_on_pwm, NULL, false);
-    add_alarm_in_ms(18000, turn_off_pwm, NULL, false);
-    add_alarm_in_us(20000040, turn_on_pwm, NULL, false);
-    add_alarm_in_ms(20600, turn_off_pwm, NULL, false);
-    add_alarm_in_ms(50000, turn_on_pwm, NULL, false);
-    add_alarm_in_ms(52000, turn_off_pwm, NULL, false);
-    add_alarm_in_ms(54000, turn_on_pwm, NULL, false);
-    add_alarm_in_ms(56000, turn_off_pwm, NULL, false);
-}
-
 void i2cinit(){
     i2c_init(I2C_PORT, 400*1000);
         for(uint8_t i = 14; i < 16; i++){
@@ -170,34 +151,69 @@ void oledinit(){
 }
 
 void oledisplay(uint8_t segundos){
-char tempo[3];
-tempo[0] = '0' + (segundos / 10);
-tempo[1] = '0' + (segundos % 10);
-tempo[2] = '\0';
-ssd1306_rect(&ssd, 1, 1, WIDTH - 2, HEIGHT - 2, true, false);
-ssd1306_draw_string(&ssd, tempo, 58, 25 );
-ssd1306_send_data(&ssd);
+    char tempo[3];
+    tempo[0] = '0' + (segundos / 10);
+    tempo[1] = '0' + (segundos % 10);
+    tempo[2] = '\0';
+    ssd1306_rect(&ssd, 1, 1, WIDTH - 2, HEIGHT - 2, true, false);
+    ssd1306_draw_string(&ssd, tempo, 58, 25 );
+    ssd1306_send_data(&ssd);
 }
 
 void contagem(){
-    if(contagem_regressiva){
+
+    if(contagem_regressiva && som_estado){ //Checa se foi o botão_b pressionado.
         if(gpio_get(verde) == 1){ 
             for (uint8_t i = tempo_amarelo ; i > 0; i--){
                 oledisplay(i);
+                if(tempo_amarelo == 20)pwm_set_gpio_level(buzzer_a, 100);
+                if(tempo_amarelo == 19)pwm_set_gpio_level(buzzer_a, 0);
+                if(tempo_amarelo == 6)pwm_set_gpio_level(buzzer_a, 100);
+                if(tempo_amarelo == 5)pwm_set_gpio_level(buzzer_a, 0);
+                if(tempo_amarelo == 4)pwm_set_gpio_level(buzzer_a, 100);
+                if(tempo_amarelo == 3)pwm_set_gpio_level(buzzer_a, 0);
                 sleep_ms(1000);
-            }    
+            } 
+                gpio_put(verde, 0);   
         }  
 
         if(gpio_get(vermelho) == 1 && gpio_get(verde) == 0){ 
             for (uint8_t i = tempo_vermelho ; i > 0; i--){
                 oledisplay(i);
+                if(tempo_vermelho == 40)pwm_set_gpio_level(buzzer_a, 100);
+                if(tempo_vermelho == 39)pwm_set_gpio_level(buzzer_a, 0);
+                if(tempo_vermelho == 10)pwm_set_gpio_level(buzzer_a, 100);
+                if(tempo_vermelho == 8)pwm_set_gpio_level(buzzer_a, 0);
+                if(tempo_vermelho == 6)pwm_set_gpio_level(buzzer_a, 100);
+                if(tempo_vermelho == 4)pwm_set_gpio_level(buzzer_a, 0);
                 sleep_ms(1000);
-            }    
+            }
+                gpio_put(vermelho, 0);
+                som_estado = 0;    
         }
-    } 
+    }
+        else if (contagem_regressiva){ // Verificação pro botao_a
+            if(gpio_get(verde) == 1){ 
+                for (uint8_t i = tempo_amarelo ; i > 0; i--){
+                    oledisplay(i);
+                    sleep_ms(1000);
+                } 
+                gpio_put(verde, 0);   
+            }  
+
+            if(gpio_get(vermelho) == 1 && gpio_get(verde) == 0){ 
+                for (uint8_t i = tempo_vermelho ; i > 0; i--){
+                    oledisplay(i);
+                    sleep_ms(1000);
+                }
+                gpio_put(vermelho, 0);    
+            }
+        }
+     
     contagem_regressiva = 0;       
 }
 
-void borda(){
-    ssd1306_rect(&ssd, 4, 4, 124, 60, true, false);
+void limpar_tela(){
+    ssd1306_fill(&ssd, false); 
+    ssd1306_send_data(&ssd);
 }
