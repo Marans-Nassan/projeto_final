@@ -19,8 +19,8 @@
 #define I2C_PORT i2c1
 
 static bool true_false = 1;
-static bool contagem_regressiva;
-static bool som_estado;
+static volatile bool contagem_regressiva;
+static volatile bool som_estado;
 uint8_t pinos[3] = {11, 13, 21};
 static uint8_t verde = led_verde;
 static uint8_t vermelho = led_vermelho;
@@ -32,9 +32,6 @@ ssd1306_t ssd;
 void led_e_buz_init();
 void botinit();
 void gpio_irq_handler(uint gpio, uint32_t events);
-int64_t turn_off_leds(alarm_id_t id, void *user_data);
-int64_t turn_off_pwm(alarm_id_t id, void *user_data);
-int64_t turn_on_pwm(alarm_id_t id, void *user_data);
 void alternando_interrupcao();
 void pwm_setup(uint32_t duty_cycle);
 void i2cinit();
@@ -99,28 +96,6 @@ void gpio_irq_handler(uint gpio, uint32_t events){
     }
 }
 
-int64_t turn_off_leds(alarm_id_t id, void *user_data){
-    uint8_t led = *(uint8_t*)user_data; 
-    gpio_put(led, 0);
-        if(gpio_get(vermelho) == 0)alternando_interrupcao();
-return 0;
-}
-
-int64_t turn_off_pwm(alarm_id_t id, void *user_data){
-    pwm_set_gpio_level(buzzer_a, 0);
-return 0;
-}
-
-int64_t turn_on_pwm(alarm_id_t id, void *user_data){
-    if(gpio_get(verde) == 1)pwm_set_gpio_level(buzzer_a, 100);       
-        else{
-            pwm_set_wrap(slice, 2999);
-            pwm_set_gpio_level(buzzer_a, 100);
-        }
-
-return 0;    
-}
-
 void alternando_interrupcao(){
     true_false = !true_false;
     
@@ -178,6 +153,7 @@ void contagem(){
         }  
 
         if(gpio_get(vermelho) == 1 && gpio_get(verde) == 0){ 
+            pwm_set_wrap(slice, 2999);
             for (uint8_t i = tempo_vermelho ; i > 0; i--){
                 oledisplay(i);
                 if(tempo_vermelho == 40)pwm_set_gpio_level(buzzer_a, 100);
