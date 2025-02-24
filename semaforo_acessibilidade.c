@@ -12,7 +12,8 @@
 #define botao_b 6
 #define buzzer_a 21
 #define divisor 125.0
-#define periodo 999
+#define periodo_a 500
+#define periodo_b 1052
 #define SDA 14
 #define SCL 15
 #define endereco 0x3c
@@ -84,7 +85,7 @@ void gpio_irq_handler(uint gpio, uint32_t events){
         }
         
         if(gpio == botao_b){ // Este botão é o de acessibilidade. Com som.
-            pwm_set_wrap(slice, 999);
+            pwm_set_wrap(slice, periodo_a);
             tempo_amarelo = 5;
             tempo_vermelho = 12;
             gpio_put(led_verde, 1);
@@ -106,8 +107,8 @@ void pwm_setup(uint32_t duty_cycle){
     gpio_set_function(buzzer_a, GPIO_FUNC_PWM);
     slice = pwm_gpio_to_slice_num(buzzer_a);
     pwm_set_clkdiv(slice, divisor);
-    pwm_set_wrap(slice, periodo);
-    pwm_set_gpio_level(buzzer_a, periodo * duty_cycle / 100);
+    pwm_set_wrap(slice, periodo_a);
+    pwm_set_gpio_level(buzzer_a, periodo_a * duty_cycle / 100);
     pwm_set_enabled(slice, true);
 }
 
@@ -140,9 +141,9 @@ void contagem(){
         if(gpio_get(verde) == 1){ 
             for (uint8_t i = tempo_amarelo ; i > 0; i--){
                 oledisplay(i);
-                if(i == 5)pwm_set_gpio_level(buzzer_a, 100);
+                if(i == 5)pwm_set_gpio_level(buzzer_a, periodo_a * 10 /100);
                 if(i == 4)pwm_set_gpio_level(buzzer_a, 0);
-                if(i == 2)pwm_set_gpio_level(buzzer_a, 100);
+                if(i == 2)pwm_set_gpio_level(buzzer_a, periodo_a * 40 /100);
                 if(i == 1)pwm_set_gpio_level(buzzer_a, 0);
                 sleep_ms(1000);
             } 
@@ -150,12 +151,12 @@ void contagem(){
         }  
 
         if(gpio_get(vermelho) == 1 && gpio_get(verde) == 0){ 
-            pwm_set_wrap(slice, 2999);
+            pwm_set_wrap(slice, periodo_b);
             for (uint8_t i = tempo_vermelho ; i > 0; i--){
                 oledisplay(i);
-                if(i == 12)pwm_set_gpio_level(buzzer_a, 100);
+                if(i == 12)pwm_set_gpio_level(buzzer_a, periodo_b * 65 /100);
                 if(i == 11)pwm_set_gpio_level(buzzer_a, 0);
-                if(i == 5)pwm_set_gpio_level(buzzer_a, 100);
+                if(i == 5)pwm_set_gpio_level(buzzer_a, periodo_b * 90 /100);
                 if(i == 3)pwm_set_gpio_level(buzzer_a, 0);
                 sleep_ms(1000);
             }
