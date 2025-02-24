@@ -28,6 +28,7 @@ static uint8_t vermelho = led_vermelho;
 static uint8_t slice;
 static uint8_t tempo_amarelo = 0;
 static uint8_t tempo_vermelho = 0;
+absolute_time_t alarm;
 // Protótipos.
 void led_e_buz_init(); // Responsável por iniciar os leds e buzzer.
 void botinit(); // Responsável por iniciar os botões.
@@ -39,6 +40,7 @@ void oledinit(); // Responsável por iniciar o OLED ssd1306.
 void oledisplay(uint8_t segundos); // Responsável por apresentar a contagem no display.
 void contagem(); // Responsável por toda operação dentro do loop principal.
 void limpar_tela(); // Responsável por limpar a tela do display ao concluir toda a operação.
+int64_t pressionado_botao_b (alarm_id_t id, void *user_data);
 // Função principal.
 int main(){
 
@@ -85,14 +87,8 @@ void gpio_irq_handler(uint gpio, uint32_t events){
         }
         
         if(gpio == botao_b){ // Este botão é o de acessibilidade. Com som.
-            pwm_set_wrap(slice, periodo_a);
-            tempo_amarelo = 5;
-            tempo_vermelho = 12;
-            gpio_put(led_verde, 1);
-            gpio_put(led_vermelho, 1);
-            contagem_regressiva = 1;
-            alternando_interrupcao(false);
-            som_estado = 1;
+            if(gpio_get(botao_b)== 0) alarm = add_alarm_in_ms(3000, pressionado_botao_b, NULL, false);
+            else cancel_alarm(alarm);
         }
     }
 }
@@ -188,4 +184,15 @@ void contagem(){
 void limpar_tela(){
     ssd1306_fill(&ssd, false); 
     ssd1306_send_data(&ssd);
+}
+
+int64_t pressionado_botao_b (alarm_id_t id, void *user_data){
+    pwm_set_wrap(slice, periodo_a);
+    tempo_amarelo = 5;
+    tempo_vermelho = 12;
+    gpio_put(led_verde, 1);
+    gpio_put(led_vermelho, 1);
+    contagem_regressiva = 1;
+    alternando_interrupcao(false);
+    som_estado = 1;
 }
