@@ -12,8 +12,8 @@
 #define botao_b 6
 #define buzzer_a 21
 #define divisor 125.0
-#define periodo_a 500
-#define periodo_b 1052
+#define periodo_a 499
+#define periodo_b 1051
 #define SDA 14
 #define SCL 15
 #define endereco 0x3c
@@ -40,8 +40,9 @@ void oledinit(); // Responsável por iniciar o OLED ssd1306.
 void oledisplay(uint8_t segundos); // Responsável por apresentar a contagem no display.
 void contagem(); // Responsável por toda operação dentro do loop principal.
 void limpar_tela(); // Responsável por limpar a tela do display ao concluir toda a operação.
-int64_t pressionado_botao_a (alarm_id_t id, void *user_data);
-int64_t pressionado_botao_b (alarm_id_t id, void *user_data);
+int64_t pressionado_botao_a (alarm_id_t id, void *user_data); // Confirmação do botao_a pressionado.
+int64_t pressionado_botao_b (alarm_id_t id, void *user_data); // Confirmação do botao_b pressionado.
+int64_t atraso_ativacao (alarm_id_t id, void *user_data); // Garantindo que qualquer botão só será pressionado 5 segs após o termíno de todas as ações.
 // Função principal.
 int main(){
 
@@ -174,8 +175,7 @@ void contagem(){
                 gpio_put(vermelho, 0); 
             }
         }
-    contagem_regressiva = 0;  
-    alternando_interrupcao(true);      
+    contagem_regressiva = 0;       
 }
 
 void limpar_tela(){
@@ -193,6 +193,7 @@ int64_t pressionado_botao_a (alarm_id_t id, void *user_data){
     gpio_put(led_vermelho, 1);
     contagem_regressiva = 1;
     alternando_interrupcao(false); 
+    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 5) *1000, atraso_ativacao, NULL, false );
 return 0; 
 }
 
@@ -208,5 +209,10 @@ int64_t pressionado_botao_b (alarm_id_t id, void *user_data){
     contagem_regressiva = 1;
     alternando_interrupcao(false);
     som_estado = 1;
+    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 5) *1000, atraso_ativacao, NULL, false );
 return 0;
+}
+
+int64_t atraso_ativacao(alarm_id_t id, void *user_data){
+    alternando_interrupcao(true);
 }
