@@ -28,7 +28,8 @@ static uint8_t vermelho = led_vermelho;
 static uint8_t slice;
 static uint8_t tempo_amarelo = 0;
 static uint8_t tempo_vermelho = 0;
-absolute_time_t alarm;
+absolute_time_t alarm_a;
+absolute_time_t alarm_b; 
 // Protótipos.
 void led_e_buz_init(); // Responsável por iniciar os leds e buzzer.
 void botinit(); // Responsável por iniciar os botões.
@@ -80,13 +81,13 @@ void botinit(){
 void gpio_irq_handler(uint gpio, uint32_t events){
     if(gpio == botao_a || gpio == botao_b) {
         if(gpio == botao_a){ // Este botão é o de uso comum. Sem som.
-            if(gpio_get(botao_a)== 0) alarm = add_alarm_in_ms(300, pressionado_botao_a, NULL, false);
-            else cancel_alarm(alarm);
+            if(gpio_get(botao_a)== 0) alarm_a = add_alarm_in_ms(300, pressionado_botao_a, NULL, false);
+            else cancel_alarm(alarm_a);
         }
         
         if(gpio == botao_b){ // Este botão é o de acessibilidade. Com som.
-            if(gpio_get(botao_b) == 0) alarm = add_alarm_in_ms(3000, pressionado_botao_b, NULL, false);
-            else cancel_alarm(alarm);
+            if(gpio_get(botao_b) == 0) alarm_b = add_alarm_in_ms(3000, pressionado_botao_b, NULL, false);
+            else cancel_alarm(alarm_b);
         }
     }
 }
@@ -148,9 +149,9 @@ void contagem(){
             pwm_set_wrap(slice, periodo_b);
             for (uint8_t i = tempo_vermelho ; i > 0; i--){
                 oledisplay(i);
-                if(i == 12)pwm_set_gpio_level(buzzer_a, periodo_b * 65 /100);
+                if(i == 12)pwm_set_gpio_level(buzzer_a, periodo_b * 55 /100);
                 if(i == 11)pwm_set_gpio_level(buzzer_a, 0);
-                if(i == 5)pwm_set_gpio_level(buzzer_a, periodo_b * 90 /100);
+                if(i == 5)pwm_set_gpio_level(buzzer_a, periodo_b * 75 /100);
                 if(i == 3)pwm_set_gpio_level(buzzer_a, 0);
                 sleep_ms(1000);
             }
