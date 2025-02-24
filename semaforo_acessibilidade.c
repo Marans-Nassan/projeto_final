@@ -40,6 +40,7 @@ void oledinit(); // Responsável por iniciar o OLED ssd1306.
 void oledisplay(uint8_t segundos); // Responsável por apresentar a contagem no display.
 void contagem(); // Responsável por toda operação dentro do loop principal.
 void limpar_tela(); // Responsável por limpar a tela do display ao concluir toda a operação.
+int64_t pressionado_botao_a (alarm_id_t id, void *user_data);
 int64_t pressionado_botao_b (alarm_id_t id, void *user_data);
 // Função principal.
 int main(){
@@ -78,16 +79,12 @@ void botinit(){
 void gpio_irq_handler(uint gpio, uint32_t events){
     if(gpio == botao_a || gpio == botao_b) {
         if(gpio == botao_a){ // Este botão é o de uso comum. Sem som.
-            tempo_amarelo = 5;
-            tempo_vermelho = 10;
-            gpio_put(led_verde, 1);
-            gpio_put(led_vermelho, 1);
-            contagem_regressiva = 1;
-            alternando_interrupcao(false);           
+            if(gpio_get(botao_a)== 0) alarm = add_alarm_in_ms(300, pressionado_botao_a, NULL, false);
+            else cancel_alarm(alarm);
         }
         
         if(gpio == botao_b){ // Este botão é o de acessibilidade. Com som.
-            if(gpio_get(botao_b)== 0) alarm = add_alarm_in_ms(3000, pressionado_botao_b, NULL, false);
+            if(gpio_get(botao_b) == 0) alarm = add_alarm_in_ms(3000, pressionado_botao_b, NULL, false);
             else cancel_alarm(alarm);
         }
     }
@@ -186,7 +183,23 @@ void limpar_tela(){
     ssd1306_send_data(&ssd);
 }
 
+int64_t pressionado_botao_a (alarm_id_t id, void *user_data){
+    if(gpio_get(botao_a))
+    return 0;
+
+    tempo_amarelo = 5;
+    tempo_vermelho = 10;
+    gpio_put(led_verde, 1);
+    gpio_put(led_vermelho, 1);
+    contagem_regressiva = 1;
+    alternando_interrupcao(false); 
+return 0; 
+}
+
 int64_t pressionado_botao_b (alarm_id_t id, void *user_data){
+    if(gpio_get(botao_b))
+    return 0;
+
     pwm_set_wrap(slice, periodo_a);
     tempo_amarelo = 5;
     tempo_vermelho = 12;
@@ -195,4 +208,5 @@ int64_t pressionado_botao_b (alarm_id_t id, void *user_data){
     contagem_regressiva = 1;
     alternando_interrupcao(false);
     som_estado = 1;
+return 0;
 }
