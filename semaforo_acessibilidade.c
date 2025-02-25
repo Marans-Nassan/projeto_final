@@ -2,7 +2,7 @@
 #include "pico/stdlib.h"
 #include "pico/time.h"
 #include "hardware/pwm.h"
-
+// Macros.
 #define led_verde 11
 #define led_vermelho 13
 #define botao_a 5
@@ -11,26 +11,26 @@
 #define divisor 125.0
 #define periodo_a 499
 #define periodo_b 1051
-
+// Variáveis.
 uint8_t pinos[3] = {11, 13, 21};
 static uint8_t verde = led_verde;
 static uint8_t vermelho = led_vermelho;
 static uint8_t slice;
 absolute_time_t alarm_a;
 absolute_time_t alarm_b;
-
-void led_e_buz_init();
-void botinit();
-void gpio_irq_handler(uint gpio, uint32_t events);
-int64_t turn_off_leds(alarm_id_t id, void *user_data);
-int64_t turn_off_pwm(alarm_id_t id, void *user_data);
-int64_t turn_on_pwm(alarm_id_t id, void *user_data);
-int64_t pressionado_botao_a(alarm_id_t id, void *user_data);
-int64_t pressionado_botao_b(alarm_id_t id, void *user_data);
-int64_t atraso_botao(alarm_id_t id, void *user_data);
-bool alternando_interrupcao(bool true_false);
-void alarm_buzzers();
-void pwm_setup(uint32_t duty_cycle);
+//Protótipos.
+void led_e_buz_init(); // Responsável por ligar os leds e o buzzer.
+void botinit(); // Responsável por ligar os botões.
+void gpio_irq_handler(uint gpio, uint32_t events); // Responsável por gerenciar os eventos dos botões.
+int64_t turn_off_leds(alarm_id_t id, void *user_data); // Responsável por desligar os leds através de alarme.
+int64_t turn_off_pwm(alarm_id_t id, void *user_data); // Responsável por desligar o PWM através do alarme.
+int64_t turn_on_pwm(alarm_id_t id, void *user_data); // Responsável por ligar o PWM através do alarme.
+int64_t pressionado_botao_a(alarm_id_t id, void *user_data); // Responsável por iniciar os comandos da interrupção do botão A.
+int64_t pressionado_botao_b(alarm_id_t id, void *user_data); // Responsável por iniciar os comandos da interrupção do botão B.
+int64_t atraso_botao(alarm_id_t id, void *user_data); // Responsável por atrasar o momento que o botão poder ser utilizado novamente ao finalizar as operações.
+bool alternando_interrupcao(bool true_false); // Responsável por alternar entre a interrupção estar ligada ou não.
+void alarm_buzzers(); // Armazenamento dos alarmes sonoros.
+void pwm_setup(uint32_t duty_cycle); // Configuração do PWM.
 
 int main(){
 
@@ -78,7 +78,6 @@ void gpio_irq_handler(uint gpio, uint32_t events){
 int64_t turn_off_leds(alarm_id_t id, void *user_data){
     uint8_t led = *(uint8_t*)user_data; 
     gpio_put(led, 0);
-    if(gpio_get(vermelho) == 0)alternando_interrupcao(false);
     return 0;
 }
 
