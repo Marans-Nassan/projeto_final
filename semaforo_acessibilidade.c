@@ -194,7 +194,7 @@ int64_t pressionado_botao_a (alarm_id_t id, void *user_data){
     gpio_put(led_vermelho, 1);
     contagem_regressiva = 1;
     alternando_interrupcao(false); 
-    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 5) *1000, atraso_ativacao, NULL, false );
+    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 15) *1000, atraso_ativacao, NULL, false );
 return 0; 
 }
 
@@ -210,7 +210,7 @@ int64_t pressionado_botao_b (alarm_id_t id, void *user_data){
     contagem_regressiva = 1;
     alternando_interrupcao(false);
     som_estado = 1;
-    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 5) *1000, atraso_ativacao, NULL, false );
+    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 15) *1000, atraso_ativacao, NULL, false );
 return 0;
 }
 
