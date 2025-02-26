@@ -102,7 +102,7 @@ int64_t pressionado_botao_a(alarm_id_t id, void *user_data){
     alternando_interrupcao(false);           
     add_alarm_in_ms(6000, turn_off_leds, &verde, false);
     add_alarm_in_ms(16000, turn_off_leds, &vermelho, false);
-    add_alarm_in_ms(21000, atraso_botao, NULL, false);
+    add_alarm_in_ms(16000 + 15000, atraso_botao, NULL, false);
 }
 
 int64_t pressionado_botao_b(alarm_id_t id, void *user_data){
@@ -113,7 +113,7 @@ int64_t pressionado_botao_b(alarm_id_t id, void *user_data){
     alarm_buzzers();
     add_alarm_in_ms(6000, turn_off_leds, &verde, false);
     add_alarm_in_ms(18000, turn_off_leds, &vermelho, false);
-    add_alarm_in_ms(23000, atraso_botao, NULL, false);  
+    add_alarm_in_ms(18000 + 15000, atraso_botao, NULL, false);  
 }
 
 bool alternando_interrupcao(bool true_false){
@@ -140,7 +140,7 @@ void alarm_buzzers(){
     add_alarm_in_ms(1000, turn_off_pwm, NULL, false);
     add_alarm_in_ms(4000, turn_on_pwm, NULL, false);
     add_alarm_in_ms(5000, turn_off_pwm, NULL, false);
-    add_alarm_in_us(6000040, turn_on_pwm, NULL, false);
+    add_alarm_in_us(6000040, turn_on_pwm, NULL, false); // O tempo esta em 'us' para garantir as alterações atribuídas ao vermelho sejam efetivadas.
     add_alarm_in_ms(7000, turn_off_pwm, NULL, false);
     add_alarm_in_ms(15000, turn_on_pwm, NULL, false);
     add_alarm_in_ms(16000, turn_off_pwm, NULL, false);
