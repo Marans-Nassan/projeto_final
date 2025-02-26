@@ -18,7 +18,6 @@
 #define SCL 15
 #define endereco 0x3c
 #define I2C_PORT i2c1
-ssd1306_t ssd;
 // Variáveis.
 static volatile bool contagem_regressiva = 0;
 static volatile bool som_estado;
@@ -30,6 +29,7 @@ static uint8_t tempo_amarelo = 0;
 static uint8_t tempo_vermelho = 0;
 absolute_time_t alarm_a;
 absolute_time_t alarm_b; 
+ssd1306_t ssd;
 // Protótipos.
 void led_e_buz_init(); // Responsável por iniciar os leds e buzzer.
 void botinit(); // Responsável por iniciar os botões.
@@ -194,7 +194,7 @@ int64_t pressionado_botao_a (alarm_id_t id, void *user_data){
     gpio_put(led_vermelho, 1);
     contagem_regressiva = 1;
     alternando_interrupcao(false); 
-    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 15) *1000, atraso_ativacao, NULL, false );
+    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 15) *1000, atraso_ativacao, NULL, false ); // Configuração pro botão reativar.
 return 0; 
 }
 
@@ -210,7 +210,7 @@ int64_t pressionado_botao_b (alarm_id_t id, void *user_data){
     contagem_regressiva = 1;
     alternando_interrupcao(false);
     som_estado = 1;
-    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 15) *1000, atraso_ativacao, NULL, false );
+    add_alarm_in_ms ((tempo_amarelo + tempo_vermelho + 15) *1000, atraso_ativacao, NULL, false ); // Configuração pro botão reativar.
 return 0;
 }
 
