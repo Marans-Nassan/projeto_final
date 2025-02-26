@@ -14,7 +14,7 @@ O sistema é reativo – acionado apenas quando necessário – e possui duas ve
 - Oferecer uma solução de baixo custo e eficiente.
 - Garantir acessibilidade com sinalização sonora.
 - Operar de forma reativa, acionando o sistema apenas quando necessário.
-- Utilizar temporizadores de até 30 segundos e aplicação ideal em distâncias de até 12 metros.
+- Utilizar temporizadores de até 28 segundos e aplicação ideal em distâncias de até 15 metros.
 
 ## Componentes Utilizados
 
