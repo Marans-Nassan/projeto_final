@@ -67,7 +67,7 @@ void gpio_irq_handler(uint gpio, uint32_t events){
     
     if(gpio == botao_a || gpio == botao_b) {
         if(gpio == botao_a){
-            if(gpio_get(botao_a) == 0)alarm_a = add_alarm_in_ms(500, pressionado_botao_a, NULL, false);
+            if(gpio_get(botao_a) == 0)alarm_a = add_alarm_in_ms(300, pressionado_botao_a, NULL, false);
         }
         if(gpio == botao_b){
             if(gpio_get(botao_b) == 0)alarm_b = add_alarm_in_ms(3000, pressionado_botao_b, NULL, false);
